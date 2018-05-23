@@ -1,0 +1,127 @@
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>Content Sale</title>
+
+  <!-- Bootstrap -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+  <!-- Application -->
+  <link href="css/app.css" rel="stylesheet">
+
+</head>
+
+<body>
+  <div id="detailsTemplate" style="display: none">
+    <div class="row-lg-12">
+      <div class="panel panel-default panel-content">
+        <div class="panel-heading">
+          <h3 class="panel-title-details"></h3>
+        </div>
+        <div class="panel-body">
+          <strong>Name</strong>: <span class="content-name-details"></span><br/>
+          <strong>Description</strong>: <span class="content-description-details"></span><br/>
+          <strong>Price (ETH)</strong>: <span class="content-price-details"></span><br/>
+          <strong>Sold by</strong>: <span class="content-owner-details"></span><br/>
+          <strong>Number of sales</strong>: <span class="content-number-of-buyers-details"></span><br/>
+          <strong>Status</strong>: <span class="content-already-bought-details"></span><br/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/web3.min.js"></script>
+  <script src="js/truffle-contract.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>
+
+
+
+<script type="text/javascript">
+    //displayDetails();
+
+
+window.onload =
+
+function initializeContract() {
+  $.getJSON('ContentSale.json', function(contentSaleArtifact) {
+    // get the contract artifact file and use it to instantiate a truffle contract abstraction
+    App.contracts.ContentSale = TruffleContract(contentSaleArtifact);
+    // set the provider for our contracts
+    App.contracts.ContentSale.setProvider(App.web3Provider);
+
+    displayDetails();
+  });
+}
+
+function displayDetails() {
+  $('#detailsTemplate').hide();
+
+  event.preventDefault();
+
+  //var url = $(event.currentTarget).attr('href');
+
+  // retrieve the details
+  var _contentId = $.uriGet('id');//$(event.currentTarget).data('id');
+
+  App.contracts.ContentSale.deployed().then(function(instance) {
+      instance.GetContentInfoAll(_contentId).then(function(details) {
+          $('#detailsTemplate').show();
+          var id = details[0];
+          var name = details[1];
+          var description = details[2];
+          var price = details[3];
+          var numberOfBuyers = details[4];
+
+          var etherPrice = web3.fromWei(price, "ether");
+
+          var detailsTemplate = $("#detailsTemplate");
+          detailsTemplate.find('.panel-title-details').text(name);
+          detailsTemplate.find('.content-name-details').text(name);
+          detailsTemplate.find('.content-description-details').text(description);
+          detailsTemplate.find('.content-price-details').text(etherPrice + " ETH");
+          if (App.account == App.owner)
+              detailsTemplate.find('.content-owner-details').text("You");
+          else
+              detailsTemplate.find('.content-owner-details').text(App.owner);
+
+          detailsTemplate.find('.content-number-of-buyers-details').text(numberOfBuyers);
+        }).catch(function(err) {
+          $('#detailsTemplate').html('<div class="row-lg-12"><h3>You are not authorized to access the contents.</h3></div>');
+          $('#detailsTemplate').show();
+          console.error(err.message);
+          //alert(err.message);
+      });
+  });
+  }
+
+  (function ($) {
+    $.extend({
+        uriGet: function () {
+          var url_string = location.href;
+          var url = new URL(url_string);
+          var val = url.searchParams.get(arguments[0]);
+          return val;
+        }
+    });
+  })(jQuery);
+
+</script>
