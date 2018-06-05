@@ -235,6 +235,7 @@ contract ContentSale is Ownable {
       return owner;
     }
 
+    // In orde to recieve ethers
     /*function() public payable
     {
 
