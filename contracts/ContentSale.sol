@@ -234,4 +234,9 @@ contract ContentSale is Ownable {
     function GetOwner() public view returns(address) {
       return owner;
     }
+
+    /*function() public payable
+    {
+
+    }*/
 }
